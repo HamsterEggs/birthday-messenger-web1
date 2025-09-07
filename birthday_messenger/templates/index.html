@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Birthday Messenger</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+function sendMessage() {
+    const input = document.getElementById("message");
+    const sender = document.getElementById("sender").value;
+    const text = input.value;
+    if (!text) return;
+    socket.emit("send_message", {sender, text});
+    input.value = "";
+}
+
+socket.on("receive_message", (msg) => {
+    addMessage(msg);
+});
+
+function addMessage(msg) {
+    const chat = document.getElementById("chat");
+    const div = document.createElement("div");
+    div.className = msg.sender === "Marcus" ? "bubble me" : "bubble her";
+    div.innerHTML = `<b>${msg.sender}</b>: ${msg.text} <span class="time">${msg.time.split(' ')[1]}</span>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+</script>
+</head>
+<body>
+<div id="chat">
+    {% for msg in history %}
+        <div class="bubble {{ 'me' if msg.sender==me_name else 'her' }}">
+            <b>{{ msg.sender }}</b>: {{ msg.text }} <span class="time">{{ msg.time.split(' ')[1] }}</span>
+        </div>
+    {% endfor %}
+</div>
+
+<select id="sender">
+    <option value="{{ me_name }}">{{ me_name }}</option>
+    <option value="{{ her_name }}">{{ her_name }}</option>
+</select>
+<input type="text" id="message" placeholder="Type message..." onkeydown="if(event.key==='Enter'){sendMessage();}">
+<button onclick="sendMessage()">Send ▶</button>
+</body>
+</html>
+
